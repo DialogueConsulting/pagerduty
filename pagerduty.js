@@ -10,6 +10,8 @@ class PagerDuty {
   constructor(options) {
     if (!options.serviceKey) throw new Error('serviceKey is required')
     this.serviceKey = options.serviceKey
+    this.retryCount = options.retryCount || 0
+    this.retryInterval = options.retryInterval
   }
 
   create(options) {
@@ -32,7 +34,7 @@ class PagerDuty {
   }
 
   //{description, incidentKey, eventType, details}
-  request(options) {
+  request(options, retryAttempts = 0) {
     if (!options.eventType) throw new Error('eventType is required')
 
     const body = {
@@ -52,8 +54,16 @@ class PagerDuty {
         uri: CREATE_EVENT_URI,
         json: body
       }, (err, res, body) => {
-        if (err || res.statusCode !== 200) {
-          return reject(err || {statusCode: res.statusCode, body})
+        if (err) {
+          console.warn('[PagerDuty] ERROR', err, options)
+          if (retryAttempts < this.retryCount) {
+            return setTimeout(() => resolve(this.request(options, retryAttempts + 1)), this.retryInterval)
+          }
+          return reject(err)
+        }
+
+        if (res.statusCode !== 200) {
+          return reject({statusCode: res.statusCode, body})
         }
         return resolve(body)
       })
