@@ -56,7 +56,7 @@ class PagerDuty {
         json: body
       }, (err, res, body) => {
         if (err) {
-          console.warn('[PagerDuty] ERROR', err, options)
+          console.error('[PagerDuty] ERROR', err, options);
           if (retryAttempts < this.retryCount) {
             return setTimeout(() => resolve(this.request(options, retryAttempts + 1)), this.retryInterval)
           }
@@ -66,6 +66,7 @@ class PagerDuty {
         if (res.statusCode !== 200) {
           return reject({statusCode: res.statusCode, body})
         }
+        console.log('[PagerDuty] response body',body);
         return resolve(body)
       })
     })
