@@ -34,7 +34,8 @@ class PagerDuty {
   }
 
   //{description, incidentKey, eventType, details}
-  request(options, retryAttempts = 0) {
+  request(options, retryAttempts) {
+    if(retryAttempts == null || retryAttempts == undefined) {retryAttempts = 0};
     if (!options.eventType) throw new Error('eventType is required')
 
     const body = {
